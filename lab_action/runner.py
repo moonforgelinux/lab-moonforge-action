@@ -8,11 +8,9 @@ from typing import NamedTuple
 from . import inputs
 
 RUNNERS = ("pytest", "command")
-DEFAULT_OUTDIR = "test-results"
 
 
 class Plan(NamedTuple):
-    runner: str
     command: list
     workdir: Path
     outdir: Path
@@ -42,7 +40,7 @@ def directories():
     if not workdir.is_dir():
         inputs.fail("workdir does not exist: " + str(workdir))
 
-    outdir = (workdir / inputs.get("outdir", DEFAULT_OUTDIR)).resolve()
+    outdir = (workdir / inputs.get("outdir", "test-results")).resolve()
     check_under(outdir, root, "outdir")
     return workdir, outdir
 
@@ -79,4 +77,4 @@ def plan():
         command = pytest_command(entrypoint, args, outdir)
     else:
         command = direct_command(entrypoint, args, workdir)
-    return Plan(runner, command, workdir, outdir)
+    return Plan(command, workdir, outdir)

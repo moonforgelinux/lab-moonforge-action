@@ -56,11 +56,7 @@ def test_the_entry_point_runs_from_workdir(workspace, given):
 
 def test_the_outputs_describe_the_run(workspace, given, outputs):
     shell(given, "exit 3")
-    assert outputs() == {
-        "runner": "command",
-        "outdir": "test-results",
-        "exit_code": "3",
-    }
+    assert outputs() == {"outdir": "test-results", "exit_code": "3"}
 
 
 def test_the_reported_outdir_is_relative_to_the_workspace(workspace, given,
