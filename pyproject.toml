@@ -59,3 +59,8 @@ markers = [
 
 [tool.coverage.run]
 source = ["lab_action"]
+
+[tool.coverage.report]
+# A floor, not a target. Raise it as the real shape of the code settles.
+fail_under = 90
+show_missing = true
