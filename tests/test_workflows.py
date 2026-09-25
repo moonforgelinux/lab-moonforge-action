@@ -3,11 +3,25 @@ from pathlib import Path
 
 import yaml
 
+from test_image import IMAGE
+
 WORKFLOWS = Path(__file__).resolve().parents[1] / ".github" / "workflows"
 
 
 def load(name):
     return yaml.safe_load((WORKFLOWS / name).read_text())
+
+
+def triggers(workflow):
+    """YAML 1.1 reads a bare `on` key as the boolean True."""
+    return workflow.get("on", workflow.get(True))
+
+
+def step(workflow, job, key, fragment):
+    for found in workflow["jobs"][job]["steps"]:
+        if fragment in found.get(key, ""):
+            return found
+    raise AssertionError(f"no step with {key} matching {fragment}")
 
 
 def test_every_workflow_parses_and_defines_jobs():
@@ -22,3 +36,20 @@ def test_the_matrix_covers_the_lowest_supported_python():
     floor = floor.lstrip(">=")
     matrix = load("test.yml")["jobs"]["pytest"]["strategy"]["matrix"]
     assert floor in matrix["python-version"]
+
+
+def test_the_image_job_builds_the_tag_the_container_tests_look_for():
+    build = step(load("test.yml"), "image", "run", "docker build")
+    assert IMAGE in build["run"]
+
+
+def test_nothing_but_a_tag_publishes_an_image():
+    fired_by = triggers(load("release.yml"))
+    assert set(fired_by) == {"push", "workflow_dispatch"}
+    assert fired_by["push"] == {"tags": ["v*"]}
+
+
+def test_the_release_builds_both_architectures():
+    build = step(load("release.yml"), "publish", "uses",
+                 "build-push-action")
+    assert build["with"]["platforms"] == "linux/amd64,linux/arm64"
