@@ -1,0 +1,22 @@
+# Pinned actions stop receiving fixes unless something raises the pins.
+# Prefixes match the commit scopes the sanatizer expects.
+
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: CI
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: image

@@ -40,7 +40,10 @@ while IFS= read -r subject; do
     fi
 done < <(git log "$range" --format=%s)
 
-if ! git log "$range" --format=%B |
+# Dependabot writes its own messages and cannot add a trailer.
+if [[ "$GITHUB_HEAD_REF" == dependabot/* ]]; then
+    echo "Dependabot branch; not asking it for a Change-type."
+elif ! git log "$range" --format=%B |
         grep -iqE 'Change-type:|Maintenance-type:'; then
     echo "Error: no commit contains 'Change-type:' or 'Maintenance-type:'."
     errors=1
