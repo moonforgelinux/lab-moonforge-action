@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lab-moonforge-action"
+description = "Run Moonforge test suites on a dut-control lab device"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dynamic = ["version"]
+
+authors = [
+  { name = "Igalia S.L." }
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+]
+
+# Nothing at run time: the lab is driven through the dut-control-client CLI,
+# so every step stays reproducible by hand.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/moonforgelinux/lab-moonforge-action"
+Source = "https://github.com/moonforgelinux/lab-moonforge-action.git"
+
+[project.scripts]
+lab-moonforge-action = "lab_action.main:main"
+
+[project.optional-dependencies]
+test = [
+  "pytest>=7.0",
+  "pytest-cov>=4.0",
+  "pyyaml>=6.0",
+]
+lint = [
+  "pycodestyle",
+  "pyflakes",
+  "radon",
+]
+
+[tool.setuptools]
+packages = ["lab_action"]
+
+[tool.setuptools.dynamic]
+version = { attr = "lab_action.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+  "lifecycle: runs the action against the dut-control stub",
+  "docker: runs the built container image",
+]
+
+[tool.coverage.run]
+source = ["lab_action"]

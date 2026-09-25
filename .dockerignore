@@ -1,0 +1,9 @@
+.git
+.github
+.venv
+.pytest_cache
+__pycache__
+examples
+tests
+design.md
+plan.md
