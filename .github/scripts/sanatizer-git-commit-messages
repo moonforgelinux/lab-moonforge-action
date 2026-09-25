@@ -1,0 +1,50 @@
+#!/bin/bash
+
+here="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=.github/scripts/common.sh
+. "$here/common.sh"
+cd_repo_root
+
+echo "Running git commit log messages check:"
+
+baseref="${GITHUB_BASE_REF:-main}"
+headref="HEAD"
+
+if git remote get-url origin >/dev/null 2>&1; then
+    git fetch -q origin "$baseref"
+    if [ -n "$GITHUB_HEAD_REF" ]; then
+        git fetch -q origin "$GITHUB_HEAD_REF"
+        headref="origin/$GITHUB_HEAD_REF"
+    fi
+    range="origin/$baseref..$headref"
+else
+    # No remote yet: there is no base to compare against, so check
+    # every commit on this branch.
+    echo "No origin remote; checking all commits on $headref."
+    range="$headref"
+fi
+
+if [ -z "$(git log "$range" --format=%s)" ]; then
+    echo "No commits to check."
+    exit 0
+fi
+
+errors=0
+
+# --format terminates every subject with a newline; --pretty=format:
+# omits the last one, and read would then drop the final commit.
+while IFS= read -r subject; do
+    if ! [[ "$subject" =~ ^[a-zA-Z0-9,_-]+:\ .+$ ]]; then
+        echo "Invalid commit message: $subject"
+        errors=1
+    fi
+done < <(git log "$range" --format=%s)
+
+if ! git log "$range" --format=%B |
+        grep -iqE 'Change-type:|Maintenance-type:'; then
+    echo "Error: no commit contains 'Change-type:' or 'Maintenance-type:'."
+    errors=1
+fi
+
+[ "$errors" -eq 0 ] || fatal "git commit log messages found issues."
+echo "git commit log messages passed successfully."
