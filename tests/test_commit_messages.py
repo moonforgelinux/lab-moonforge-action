@@ -35,3 +35,21 @@ def test_the_checker_judges_a_single_commit(tmp_path, message, accepted):
     checker = repo_with_commit(tmp_path, message)
     done = subprocess.run([str(checker)], capture_output=True, text=True)
     assert (done.returncode == 0) is accepted, done.stdout + done.stderr
+
+
+def test_dependabot_is_not_asked_for_a_trailer(tmp_path, monkeypatch):
+    """It writes its own messages and cannot add one."""
+    monkeypatch.setenv("GITHUB_HEAD_REF", "dependabot/github_actions/all")
+    checker = repo_with_commit(
+        tmp_path, "CI: bump actions/checkout from 4.4.0 to 4.5.0")
+
+    done = subprocess.run([str(checker)], capture_output=True, text=True)
+    assert done.returncode == 0, done.stdout + done.stderr
+
+
+def test_a_lookalike_branch_still_needs_a_trailer(tmp_path, monkeypatch):
+    monkeypatch.setenv("GITHUB_HEAD_REF", "dependabot-lookalike")
+    checker = repo_with_commit(tmp_path, "CI: Do a thing")
+
+    done = subprocess.run([str(checker)], capture_output=True, text=True)
+    assert done.returncode != 0
