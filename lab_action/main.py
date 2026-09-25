@@ -47,7 +47,6 @@ def hand_back(outdir, reference):
 
 
 def report(plan, status):
-    inputs.set_output("runner", plan.runner)
     inputs.set_output("outdir", plan.outdir.relative_to(runner.workspace()))
     inputs.set_output("exit_code", status)
 

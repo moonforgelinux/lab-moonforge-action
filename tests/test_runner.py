@@ -120,7 +120,7 @@ def test_a_plan_carries_the_command_and_the_directories(workspace, given):
 
     made = runner.plan()
 
-    assert made.runner == "pytest"
+    assert made.command[0] == "pytest"
     assert made.workdir == workspace / "tests"
     assert made.outdir == workspace / "tests" / "test-results"
     assert made.command[-2:] == ["-x", "integration"]
@@ -130,7 +130,4 @@ def test_a_plan_for_a_command_runner_leaves_the_command_alone(workspace,
                                                               given):
     given(runner="command", entrypoint="true", args="--now")
 
-    made = runner.plan()
-
-    assert made.runner == "command"
-    assert made.command == ["true", "--now"]
+    assert runner.plan().command == ["true", "--now"]
