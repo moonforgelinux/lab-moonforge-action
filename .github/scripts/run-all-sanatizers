@@ -1,0 +1,14 @@
+#!/bin/bash
+# Run every sanatizer, reporting all the failures rather than the first.
+
+here="$(cd "$(dirname "$0")" && pwd)"
+
+exit_status=0
+for script in "$here"/sanatizer-*; do
+    if ! "$script"; then
+        echo "Error: $script failed"
+        exit_status=1
+    fi
+done
+
+exit "$exit_status"

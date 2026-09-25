@@ -1,0 +1,21 @@
+#!/bin/bash
+
+here="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=.github/scripts/common.sh
+. "$here/common.sh"
+cd_repo_root
+
+tool="$(find_tool pycodestyle3 pycodestyle)" ||
+    fatal "Could not find pycodestyle"
+
+mapfile -t sources < <(python_sources)
+if [ "${#sources[@]}" -eq 0 ]; then
+    echo "No Python sources to check."
+    exit 0
+fi
+
+echo "Running pycodestyle on the following scripts:"
+printf '%s\n' "${sources[@]}"
+
+"$tool" "${sources[@]}" || fatal "pycodestyle found issues."
+echo "pycodestyle passed successfully."

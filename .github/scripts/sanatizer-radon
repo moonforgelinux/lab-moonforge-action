@@ -1,0 +1,23 @@
+#!/bin/bash
+
+here="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=.github/scripts/common.sh
+. "$here/common.sh"
+cd_repo_root
+
+tool="$(find_tool radon)" || fatal "Could not find radon"
+
+mapfile -t sources < <(python_sources)
+if [ "${#sources[@]}" -eq 0 ]; then
+    echo "No Python sources to check."
+    exit 0
+fi
+
+echo "Running radon on the following scripts:"
+printf '%s\n' "${sources[@]}"
+
+# Anything rated C or worse is too involved to review comfortably.
+if "$tool" cc -a -s -n C "${sources[@]}" | grep -E '\- C|\- D|\- F'; then
+    fatal "radon found issues."
+fi
+echo "radon passed successfully."
