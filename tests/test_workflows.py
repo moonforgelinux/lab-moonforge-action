@@ -1,3 +1,4 @@
+import re
 from importlib.metadata import metadata
 from pathlib import Path
 
@@ -47,6 +48,15 @@ def test_nothing_but_a_tag_publishes_an_image():
     fired_by = triggers(load("release.yml"))
     assert set(fired_by) == {"push", "workflow_dispatch"}
     assert fired_by["push"] == {"tags": ["v*"]}
+
+
+def test_the_release_pins_every_action_by_sha():
+    """A moved tag would run as the only token that writes packages."""
+    for job in load("release.yml")["jobs"].values():
+        for found in job["steps"]:
+            used = found.get("uses")
+            if used:
+                assert re.fullmatch(r"[0-9a-f]{40}", used.split("@")[1]), used
 
 
 def test_the_release_builds_both_architectures():
