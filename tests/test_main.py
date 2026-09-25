@@ -1,4 +1,5 @@
 import os
+import shlex
 
 import pytest
 
@@ -21,12 +22,20 @@ def outputs(tmp_path, monkeypatch):
 
 def shell(given, script, **rest):
     """Run a shell snippet as the entry point."""
-    given(runner="command", entrypoint="sh", args=f"-c '{script}'", **rest)
+    given(runner="command", entrypoint="sh",
+          args="-c " + shlex.quote(script), **rest)
     return main.main()
 
 
 def test_a_passing_entry_point_reports_zero(workspace, given):
     assert shell(given, "true") == 0
+
+
+def test_a_snippet_carrying_a_quote_reaches_the_shell_whole(workspace,
+                                                            given):
+    """shlex.quote keeps this in one argument; hand-written quotes do not."""
+    shell(given, "echo \"it's fine\" > seen")
+    assert (workspace / "seen").read_text().strip() == "it's fine"
 
 
 def test_the_exit_status_of_the_entry_point_becomes_ours(workspace, given):
