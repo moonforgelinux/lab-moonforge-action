@@ -1,3 +1,16 @@
+# Three jobs, in order of what they cost:
+#
+#   pytest    the suite on every supported Python. Fast, no container:
+#             the action only ever reads INPUT_* variables, so a test
+#             can drive it in process.
+#   image     builds the image and runs the tests marked "docker",
+#             which drive the action the way GitHub drives it. Those
+#             tests skip themselves everywhere else, so this is the
+#             only job that really executes them.
+#   coverage  the suite once more, for the report and the floor.
+#
+# The linters live in sanatizers.yml, not here.
+
 name: Tests
 
 on:
@@ -28,9 +41,12 @@ jobs:
       - name: Install the package
         run: pip install -e ".[test]"
 
+      # The docker tests skip here: nothing built an image.
       - name: Run pytest
         run: pytest -v
 
+  # Kept out of the matrix above: what this proves is the image, not
+  # the runner's interpreter, so building it three times buys nothing.
   image:
     runs-on: ubuntu-latest
 
@@ -48,9 +64,12 @@ jobs:
       - name: Install the package
         run: pip install -e ".[test]"
 
+      # tests/test_image.py looks for exactly this tag.
       - name: Build the image
         run: docker build -t lab-moonforge-action:ci .
 
+      # The tests shell out to $CONTAINER_ENGINE, podman by default
+      # because that is what works on a developer's machine here.
       - name: Run the action inside it
         run: pytest -m docker -v
         env:
