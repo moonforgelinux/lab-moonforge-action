@@ -59,7 +59,24 @@ def test_the_release_pins_every_action_by_sha():
                 assert re.fullmatch(r"[0-9a-f]{40}", used.split("@")[1]), used
 
 
+def release_matrix():
+    return load("release.yml")["jobs"]["build"]["strategy"]["matrix"]
+
+
 def test_the_release_builds_both_architectures():
-    build = step(load("release.yml"), "publish", "uses",
-                 "build-push-action")
-    assert build["with"]["platforms"] == "linux/amd64,linux/arm64"
+    platforms = {entry["platform"] for entry in release_matrix()["include"]}
+    assert platforms == {"linux/amd64", "linux/arm64"}
+
+
+def test_each_architecture_builds_on_a_runner_of_its_own_kind():
+    runners = {entry["platform"]: entry["runs-on"]
+               for entry in release_matrix()["include"]}
+    assert "arm" in runners["linux/arm64"]
+    assert "arm" not in runners["linux/amd64"]
+
+
+def test_nothing_in_the_release_emulates():
+    """Emulation means a privileged container registering binfmt."""
+    for job in load("release.yml")["jobs"].values():
+        for found in job["steps"]:
+            assert "setup-qemu" not in found.get("uses", "")
