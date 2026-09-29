@@ -26,6 +26,20 @@ inputs:
     required: false
     default: ''
 
+  # --- lab hardware. Leave dut_pool empty to run on the runner itself.
+  dut_pool:
+    description: 'dut-control pool to reserve a device from. Setting it wraps the run in the lab lifecycle. A specific device is addressed by giving it a pool of its own in the lab configuration'
+    required: false
+    default: ''
+  dut_control_url:
+    description: 'Base URL of the dut-control service'
+    required: false
+    default: ''
+  dut_control_client_key:
+    description: 'dut-control client key; required whenever dut_pool is set'
+    required: false
+    default: ''
+
 outputs:
   outdir:
     description: 'Output directory, relative to the workspace root, ready to hand to upload-artifact'
