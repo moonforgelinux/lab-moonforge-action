@@ -32,6 +32,14 @@ Source = "https://github.com/moonforgelinux/lab-moonforge-action.git"
 lab-moonforge-action = "lab_action.main:main"
 
 [project.optional-dependencies]
+# What the image carries for the suites themselves. Retries and
+# timeouts earn their place against flaky hardware; xdist does not,
+# since a single device is serial.
+suite = [
+  "pytest>=7.0",
+  "pytest-rerunfailures>=12.0",
+  "pytest-timeout>=2.1",
+]
 test = [
   "pytest>=7.0",
   "pytest-cov>=4.0",
