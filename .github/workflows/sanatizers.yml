@@ -1,3 +1,13 @@
+# One job, running .github/scripts/run-all-sanatizers, which is the
+# same command a developer runs before committing:
+#
+#   radon        no block rated C or worse, so functions stay small
+#   pycodestyle  PEP 8 with its defaults, so Python wraps at 79 columns
+#   pyflakes     no unused imports, names or shadowing
+#   shellcheck   every *.sh and shebang script, these scripts included
+#   commit msgs  "<scope>: <Summary>" subjects, and a Change-type line
+#
+
 name: Sanatizers
 
 on:
