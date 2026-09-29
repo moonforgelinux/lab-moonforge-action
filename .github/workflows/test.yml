@@ -31,6 +31,31 @@ jobs:
       - name: Run pytest
         run: pytest -v
 
+  image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install the package
+        run: pip install -e ".[test]"
+
+      - name: Build the image
+        run: docker build -t lab-moonforge-action:ci .
+
+      - name: Run the action inside it
+        run: pytest -m docker -v
+        env:
+          CONTAINER_ENGINE: docker
+
   coverage:
     runs-on: ubuntu-latest
 
