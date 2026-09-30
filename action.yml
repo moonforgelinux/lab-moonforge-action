@@ -39,6 +39,10 @@ inputs:
     description: 'dut-control client key; required whenever dut_pool is set'
     required: false
     default: ''
+  dut_image:
+    description: 'Image to flash before the tests, relative to workdir. Left empty, the device is used as it is'
+    required: false
+    default: ''
 
 outputs:
   outdir:

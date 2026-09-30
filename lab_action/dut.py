@@ -26,8 +26,9 @@ def strip_secrets(env):
 class Lab:
     """One device, reserved for as long as the run needs it."""
 
-    def __init__(self):
+    def __init__(self, workdir):
         self.pool = inputs.get("dut_pool")
+        self.image = _image(workdir)
         self.reservation = {}
 
     @property
@@ -77,6 +78,24 @@ class Lab:
         inputs.mask(self.token)
         inputs.log(f"reserved {self.name} at {self.reservation.get('ip')}")
 
+    def flash(self):
+        """Power down, write the image, bring the device back up."""
+        if not self.image:
+            return
+
+        inputs.log(f"flashing {self.image.name} onto {self.name}")
+        # Uploaded, not named: nothing here has to be reachable from
+        # the lab, which a container never is.
+        steps = (
+            ("could not power off", ("power", "off", "-q")),
+            ("could not flash", ("flash", "--upload", str(self.image),
+                                 "-q")),
+            ("could not power on", ("power", "on", "-q")),
+        )
+        for complaint, arguments in steps:
+            if self.client(*arguments).returncode:
+                inputs.fail(f"{complaint} {self.name}")
+
     def release(self):
         """Hand the device back. Never releases anyone else's."""
         if not self.token:
@@ -99,12 +118,24 @@ class Lab:
         }
 
 
-def borrow():
+def _image(workdir):
+    """The image to flash. Checked before any device is taken."""
+    given = inputs.get("dut_image")
+    if not given:
+        return None
+
+    image = (workdir / given).resolve()
+    if not image.is_file():
+        inputs.fail("dut_image does not exist: " + str(image))
+    return image
+
+
+def borrow(workdir):
     """A device to run on, or nothing when no pool was named."""
     if not inputs.get("dut_pool"):
         return None
 
-    lab = Lab()
+    lab = Lab(workdir)
     if not inputs.get("dut_control_client_key"):
         inputs.fail("dut_control_client_key is required with dut_pool")
     inputs.mask(inputs.get("dut_control_client_key"))

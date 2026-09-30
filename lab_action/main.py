@@ -59,12 +59,13 @@ def report(plan, status):
 
 def main():
     made = runner.plan()
-    lab = dut.borrow()
+    lab = dut.borrow(made.workdir)
     status = inputs.FAILURE
 
     try:
         if lab:
             lab.reserve()
+            lab.flash()
         status = execute(made, environment(made, lab))
     finally:
         # The device goes back however this ended, a crash of our
