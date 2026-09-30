@@ -126,6 +126,7 @@ def test_an_image_is_written_before_the_suite_runs(run_action, workspace):
         "power off -q",
         f"flash --upload {image} -q",
         "power on -q",
+        "wait",
         "lease -q",
     ]
 
