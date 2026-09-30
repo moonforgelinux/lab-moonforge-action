@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""A dut-control-client that answers from the environment, not a lab.
+
+Every call is appended to $DUT_STUB_LOG, with the token replaced by the
+word TOKEN so a sequence can be compared without knowing it. Failures
+are injected with DUT_STUB_<SUBCOMMAND>_FAIL.
+"""
+
+import json
+import os
+import sys
+
+RESERVATION = {
+    "status": 0,
+    "token": "a-secret-token",
+    "dut-name": "stub-rpi5-01",
+    "ip": "192.0.2.40",
+    "ssh-port": 22,
+    "tunnel-ssh-port": 5001,
+}
+
+
+def note(arguments):
+    path = os.environ.get("DUT_STUB_LOG")
+    if not path:
+        return
+    said = " ".join(
+        "TOKEN" if word == RESERVATION["token"] else word
+        for word in arguments)
+    with open(path, "a", encoding="utf-8") as log:
+        log.write(said + "\n")
+
+
+def fails(subcommand):
+    return os.environ.get("DUT_STUB_" + subcommand.upper() + "_FAIL")
+
+
+def main(arguments):
+    if not arguments:
+        return 2
+
+    subcommand = arguments[0]
+    note(arguments)
+
+    if fails(subcommand):
+        print(subcommand + " failed (stub)", file=sys.stderr)
+        return 1
+    if subcommand == "reserve":
+        print(json.dumps(RESERVATION))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

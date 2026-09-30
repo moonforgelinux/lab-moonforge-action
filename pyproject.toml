@@ -67,6 +67,10 @@ markers = [
 
 [tool.coverage.run]
 source = ["lab_action"]
+# The lifecycle tests drive the action as a subprocess, the way the
+# container does. conftest points those at this file so their coverage
+# is recorded too, and parallel keeps the data files from colliding.
+parallel = true
 
 [tool.coverage.report]
 # A floor, not a target. Raise it as the real shape of the code settles.
