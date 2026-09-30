@@ -5,7 +5,7 @@ Runs a test suite for images based on [Moonforge](https://github.com/moonforgeli
 It uses a DUT from pool and the run gets the lab lifecycle around it: reserve a device, flash it, wait for it to boot, test, clear it, hand it back.
 
 > [!NOTE]
-> The image this action references is not published yet, so it cannot be consumed from a workflow until `v0.1.0` is tagged. Building and running it locally works today; see *Developing*.
+> The whole lifecycle has run against a real board, and the example suite passed on it. What is still only stub-tested is the failure paths: a flash that fails, a board that never comes up. `.github/workflows/hardware.yml` is the manual run, and it needs a device and a `DUT_CONTROL_CLIENT_KEY` secret.
 
 ## Usage
 
@@ -126,6 +126,12 @@ The wipe goes through the lab node, not through the device. It works on a board 
 
 A wipe that fails only warns. The service has already taken that device out of rotation, and a test result that is good should not be thrown away for it.
 
+## Running against a board
+
+`.github/workflows/hardware.yml` is a manual run. It takes a pool and the URL of a Moonforge image, flashes a device and runs `examples/pytest/test_device.py` on it.
+
+It is the only thing that tests what the stubs cannot: that dut-control answers the way the stub pretends to, and that the image boots after the action writes it. It needs a self-hosted runner that can reach the dut-control service over HTTP. The runner does not have to be reachable back, because the image is uploaded with the request.
+
 ## Developing
 
 ```sh
@@ -152,7 +158,9 @@ podman run --rm -v "$PWD:/github/workspace" \
 
 Inputs arrive as the `INPUT_*` environment variables GitHub sets for a container action, so a local run and a CI run take the same path.
 
-Releasing: tag `vX.Y.Z`, which builds and pushes `ghcr.io/moonforgelinux/lab-moonforge-action:X.Y.Z` for amd64 and arm64, then bump the tag in the `image:` line of `action.yml`.
+`action.yml` builds its image per job, so the action works from any ref. That costs about two minutes a run.
+
+Releasing: tag `vX.Y.Z`, which builds and pushes `ghcr.io/moonforgelinux/lab-moonforge-action:X.Y.Z` for amd64 and arm64. Then point the `image:` line of `action.yml` at that tag, so consumers get a fixed image instead of building one.
 
 ## Legal
 

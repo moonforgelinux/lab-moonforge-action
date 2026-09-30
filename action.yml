@@ -52,4 +52,7 @@ outputs:
 
 runs:
   using: docker
-  image: docker://ghcr.io/moonforgelinux/lab-moonforge-action:0.1.0
+  # Built per job until there is a release to point at. Swap this for
+  # docker://ghcr.io/moonforgelinux/lab-moonforge-action:X.Y.Z once the
+  # first tag has pushed one.
+  image: Dockerfile
