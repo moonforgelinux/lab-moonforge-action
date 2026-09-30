@@ -1,11 +1,13 @@
+from pathlib import Path
+
 import pytest
 
 from lab_action import dut
 
 
-def a_lab(given, **extra):
+def a_lab(given, workdir=None, **extra):
     given(dut_pool="rpi5", dut_control_client_key="a-client-key", **extra)
-    return dut.Lab()
+    return dut.Lab(workdir or Path("."))
 
 
 def test_the_client_is_told_where_the_lab_is(given):
@@ -58,3 +60,13 @@ def test_an_image_without_the_client_says_so(given, capsys, monkeypatch):
         lab.client("lease")
 
     assert "dut-control-client is not installed" in capsys.readouterr().out
+
+
+def test_the_image_is_found_relative_to_workdir(given, workspace):
+    tests = workspace / "tests"
+    tests.mkdir()
+    (tests / "image.wic.bz2").write_bytes(b"")
+    given(dut_pool="rpi5", dut_control_client_key="a-key",
+          dut_image="image.wic.bz2")
+
+    assert dut.borrow(tests).image == tests / "image.wic.bz2"
