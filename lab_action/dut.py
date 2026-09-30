@@ -99,9 +99,23 @@ class Lab:
                 inputs.fail(f"{complaint} {self.name}")
 
     def release(self):
-        """Hand the device back. Never releases anyone else's."""
+        """Clear the device storage and hand the device back."""
         if not self.token:
             return
+
+        # Zero the head of the storage: the partition table, /boot
+        # and the start of the root filesystem. The next tenant finds
+        # nothing of this run. It goes through the node, like the
+        # flash, so it works on a device that crashed. Power down
+        # first, or the storage moves while the device uses it.
+        for step in (("power", "off", "-q"), ("wipe", "-q")):
+            if self.client(*step).returncode:
+                # The service already took this device out of
+                # rotation. Failing here would throw away a good
+                # test result.
+                inputs.warn("could not clear " + self.name)
+                break
+
         if self.client("lease", "-q").returncode:
             inputs.warn("could not release " + self.name)
         else:

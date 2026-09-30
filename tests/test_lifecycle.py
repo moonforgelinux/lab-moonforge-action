@@ -30,6 +30,8 @@ def test_a_device_is_reserved_and_handed_back(run_action):
     assert done.returncode == 0
     assert done.calls == [
         "reserve rpi5 --json --retries 15 --retries-wait 60s",
+        "power off -q",
+        "wipe -q",
         "lease -q",
     ]
 
@@ -115,7 +117,7 @@ def an_image(workspace, name="core-image.wic.bz2"):
 
 
 def test_an_image_is_written_before_the_suite_runs(run_action, workspace):
-    """Down, write, up: the card is moved while nothing is using it."""
+    """Down, write, up: the storage moves while nothing is using it."""
     image = an_image(workspace)
 
     done = run_action(**lab(dut_image=image.name))
@@ -127,6 +129,8 @@ def test_an_image_is_written_before_the_suite_runs(run_action, workspace):
         f"flash --upload {image} -q",
         "power on -q",
         "wait",
+        "power off -q",
+        "wipe -q",
         "lease -q",
     ]
 
@@ -147,4 +151,13 @@ def test_a_failed_flash_still_hands_the_device_back(run_action, workspace):
 
     assert done.returncode == 2
     assert "could not flash stub-rpi5-01" in done.stdout
+    assert done.calls[-1] == "lease -q"
+
+
+def test_storage_that_cannot_be_cleared_does_not_fail_the_run(run_action):
+    """The result is valid; the device has already left the pool."""
+    done = run_action(**lab(), stub={"DUT_STUB_WIPE_FAIL": "1"})
+
+    assert done.returncode == 0
+    assert "::warning::could not clear stub-rpi5-01" in done.stdout
     assert done.calls[-1] == "lease -q"
