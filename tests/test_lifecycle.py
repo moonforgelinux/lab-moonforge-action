@@ -106,3 +106,44 @@ def test_a_pool_without_a_key_is_refused_before_anything_is_taken(run_action):
     assert done.returncode == 2
     assert done.calls == []
     assert "dut_control_client_key is required" in done.stdout
+
+
+def an_image(workspace, name="core-image.wic.bz2"):
+    image = workspace / name
+    image.write_bytes(b"an image")
+    return image
+
+
+def test_an_image_is_written_before_the_suite_runs(run_action, workspace):
+    """Down, write, up: the card is moved while nothing is using it."""
+    image = an_image(workspace)
+
+    done = run_action(**lab(dut_image=image.name))
+
+    assert done.returncode == 0
+    assert done.calls == [
+        "reserve rpi5 --json --retries 15 --retries-wait 60s",
+        "power off -q",
+        f"flash --upload {image} -q",
+        "power on -q",
+        "lease -q",
+    ]
+
+
+def test_an_image_that_is_not_there_costs_no_reservation(run_action):
+    done = run_action(**lab(dut_image="build/never-built.wic.bz2"))
+
+    assert done.returncode == 2
+    assert done.calls == []
+    assert "dut_image does not exist" in done.stdout
+
+
+def test_a_failed_flash_still_hands_the_device_back(run_action, workspace):
+    image = an_image(workspace)
+
+    done = run_action(**lab(dut_image=image.name),
+                      stub={"DUT_STUB_FLASH_FAIL": "1"})
+
+    assert done.returncode == 2
+    assert "could not flash stub-rpi5-01" in done.stdout
+    assert done.calls[-1] == "lease -q"
