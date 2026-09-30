@@ -79,18 +79,20 @@ class Lab:
         inputs.log(f"reserved {self.name} at {self.reservation.get('ip')}")
 
     def flash(self):
-        """Power down, write the image, bring the device back up."""
+        """Power down, write the image, and wait for it to come back up."""
         if not self.image:
             return
 
         inputs.log(f"flashing {self.image.name} onto {self.name}")
-        # Uploaded, not named: nothing here has to be reachable from
-        # the lab, which a container never is.
+        # The image is uploaded, not named. The lab cannot reach a
+        # container back. The wait is the client's default, which is
+        # five minutes.
         steps = (
             ("could not power off", ("power", "off", "-q")),
             ("could not flash", ("flash", "--upload", str(self.image),
                                  "-q")),
             ("could not power on", ("power", "on", "-q")),
+            ("gave up waiting for", ("wait",)),
         )
         for complaint, arguments in steps:
             if self.client(*arguments).returncode:
