@@ -96,6 +96,10 @@ With `dut_pool` set, and only while the device is held:
 
 A suite logs in with an empty root password. A Moonforge image built with `kas/common/debug.yml` leaves it that way, and that is what CI builds. An image without that fragment has no SSH server at all.
 
+## Examples
+
+`examples/pytest` is a suite that runs either way. Two checks need nothing but the action. Three log in to the device. They check that it runs the image that was flashed, that the root filesystem is read only, and that `/data` is a writable overlay. Those three skip themselves when `DUT_IP` is unset, so the same suite passes on the runner and in the lab.
+
 ## The lab lifecycle
 
 With `dut_pool` set, the run becomes:
