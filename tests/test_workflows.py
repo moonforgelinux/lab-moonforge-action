@@ -80,3 +80,14 @@ def test_nothing_in_the_release_emulates():
     for job in load("release.yml")["jobs"].values():
         for found in job["steps"]:
             assert "setup-qemu" not in found.get("uses", "")
+
+
+def test_the_hardware_run_is_manual_only():
+    """It holds a device, so nothing should start it by itself."""
+    fired_by = triggers(load("hardware.yml"))
+
+    assert set(fired_by) == {"workflow_dispatch"}
+    asked = fired_by["workflow_dispatch"]["inputs"]
+    assert set(asked) == {"pool", "image_url"}
+    # A pool that does not exist costs a failed run, not a device.
+    assert asked["pool"]["options"] == ["raspberrypi5", "raspberrypi4"]

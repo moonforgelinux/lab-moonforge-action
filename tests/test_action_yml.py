@@ -70,7 +70,8 @@ def test_the_declared_defaults_are_the_ones_the_code_falls_back_to():
     assert checked, "no default was actually compared"
 
 
-def test_the_action_runs_a_published_image():
+def test_the_action_builds_its_own_image_until_there_is_a_release():
+    """This has to flip to the published tag when one exists."""
     runs = action()["runs"]
     assert runs["using"] == "docker"
-    assert runs["image"].startswith("docker://ghcr.io/moonforgelinux/")
+    assert runs["image"] == "Dockerfile"

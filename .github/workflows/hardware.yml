@@ -1,0 +1,76 @@
+# Runs the whole lab lifecycle against a real board. Manual only,
+# because it takes a device out of the pool for the length of the run.
+#
+# It is the only thing that tests the parts the stubs cannot: that
+# dut-control answers the way the stub pretends, and that a Moonforge
+# image boots on the board after the action flashes it.
+#
+# The runner needs to reach the dut-control service over HTTP. It does
+# not need to be reachable back: the image is uploaded with the
+# request.
+
+name: Hardware
+
+on:
+  workflow_dispatch:
+    inputs:
+      pool:
+        description: 'Pool to take a device from'
+        type: choice
+        options:
+          - raspberrypi5
+          - raspberrypi4
+        default: raspberrypi5
+      image_url:
+        description: 'URL of the Moonforge image to flash (.wic.bz2)'
+        type: string
+        required: true
+
+# One run per pool at a time. A second would sit waiting for a device
+# that this one is holding.
+#
+# github.event.inputs, not inputs: the inputs context is documented for
+# reusable workflows, and concurrency is read before a dispatch has one.
+concurrency:
+  group: hardware-${{ github.event.inputs.pool }}
+  cancel-in-progress: false
+
+jobs:
+  device:
+    runs-on: self-hosted
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # The URL goes through the environment, not into the script, so
+      # it cannot end up being read as shell.
+      - name: Fetch the image
+        run: |
+          mkdir -p build
+          curl -fsSL -o build/moonforge.wic.bz2 "$IMAGE_URL"
+          # A bmap next to the image makes the flash write only the
+          # blocks it has to. Best effort: the flash works without it.
+          curl -fsSL -o build/moonforge.wic.bmap "${IMAGE_URL%.bz2}.bmap" \
+            || rm -f build/moonforge.wic.bmap
+          ls -l build/
+        env:
+          IMAGE_URL: ${{ github.event.inputs.image_url }}
+
+      - name: Flash a device and test it
+        id: tests
+        uses: ./
+        with:
+          entrypoint: examples/pytest/test_device.py
+          dut_pool: ${{ github.event.inputs.pool }}
+          dut_image: build/moonforge.wic.bz2
+          dut_control_url: ${{ vars.DUT_CONTROL_URL }}
+          dut_control_client_key: ${{ secrets.DUT_CONTROL_CLIENT_KEY }}
+
+      - name: Upload the reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hardware-results
+          path: ${{ steps.tests.outputs.outdir }}
