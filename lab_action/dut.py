@@ -155,4 +155,11 @@ def borrow(workdir):
     if not inputs.get("dut_control_client_key"):
         inputs.fail("dut_control_client_key is required with dut_pool")
     inputs.mask(inputs.get("dut_control_client_key"))
+
+    # Not an error: the service may well be on the runner itself. But
+    # the client then talks to localhost, and a refused connection
+    # there is hard to trace back to an empty input.
+    if not inputs.get("dut_control_url"):
+        inputs.warn("dut_control_url is empty; the client will use its "
+                    "own default")
     return lab
