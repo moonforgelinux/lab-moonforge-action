@@ -46,12 +46,12 @@ def test_get_int_fails_on_something_that_is_not_a_number(monkeypatch,
 
 
 def test_lines_drops_blanks_and_strips(monkeypatch):
-    monkeypatch.setenv("INPUT_ARGS", "\n -k smoke \n\n  --reruns 2\n\n")
-    assert inputs.lines("args") == ["-k smoke", "--reruns 2"]
+    monkeypatch.setenv("INPUT_RUN_ARGS", "\n -k smoke \n\n  --reruns 2\n\n")
+    assert inputs.lines("run_args") == ["-k smoke", "--reruns 2"]
 
 
 def test_lines_of_an_unset_input_is_empty():
-    assert inputs.lines("args") == []
+    assert inputs.lines("run_args") == []
 
 
 def test_mask_emits_the_directive(capsys):

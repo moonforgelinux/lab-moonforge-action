@@ -20,8 +20,8 @@ jobs:
       - uses: moonforgelinux/lab-moonforge-action@v0.1.0
         with:
           workdir: tests
-          entrypoint: integration
-          args: -k "not slow" --reruns 2
+          run: integration
+          run_args: -k "not slow" --reruns 2
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -35,7 +35,7 @@ On a device from the lab, flashing it first:
       - uses: moonforgelinux/lab-moonforge-action@v0.1.0
         with:
           workdir: tests
-          entrypoint: integration
+          run: integration
           dut_pool: rpi5
           dut_image: build/tmp/deploy/images/raspberrypi5/moonforge-image-base.rootfs.wic.bz2
           dut_control_url: ${{ vars.DUT_CONTROL_URL }}
@@ -46,12 +46,12 @@ On a device from the lab, flashing it first:
 
 | Input | Description | Default |
 | --- | --- | --- |
-| `entrypoint` | What to run: a test path for the `pytest` runner, a program for `command`. Required | |
-| `args` | Arguments for the entry point, any number of them, split the way a shell would | `''` |
+| `run` | What to run: a test path for the `pytest` runner, a program for `command`. Required | |
+| `run_args` | Arguments for it, any number of them, split the way a shell would | `''` |
 | `runner` | `pytest` or `command` | `pytest` |
-| `workdir` | Directory in the checkout the tests live in; the entry point runs from here | `.` |
+| `workdir` | Directory in the checkout the tests live in; the run happens from here | `.` |
 | `outdir` | Directory for reports, relative to `workdir` | `test-results` |
-| `env` | One `NAME=VALUE` per line, exported to the entry point | `''` |
+| `env` | One `NAME=VALUE` per line, exported to what is run | `''` |
 
 ### Lab hardware
 
@@ -71,15 +71,15 @@ A device is asked for by pool, not by name. To reach one board, give it a pool o
 | Output | Description |
 | --- | --- |
 | `outdir` | Output directory, relative to the workspace root, ready to hand to `upload-artifact` |
-| `exit_code` | Exit status of the entry point. `1` usually means the suite failed, `2` that the request was wrong |
+| `exit_code` | Exit status of what was run. `1` usually means the suite failed, `2` that the request was wrong |
 
-The step already fails when the entry point fails. `exit_code` is for a workflow with `continue-on-error` that wants to tell a failed suite from a bad request.
+The step already fails when the run fails. `exit_code` is for a workflow with `continue-on-error` that wants to tell a failed suite from a bad request.
 
 ## What the suite gets
 
 | Variable | |
 | --- | --- |
-| `MOONFORGE_TEST_WORKDIR` | Where the entry point runs from |
+| `MOONFORGE_TEST_WORKDIR` | Where the run happens |
 | `MOONFORGE_TEST_OUTDIR` | Where reports go |
 
 With `dut_pool` set, and only while the device is held:
@@ -118,9 +118,9 @@ lease        hand the device back
 
 Without `dut_image`, the three flashing steps are skipped and the device is used in whatever state it is in.
 
-The last three steps always run. That covers a failing suite, an entry point that does not exist, and a crash of the action itself. A reservation nobody hands back holds the device for two hours.
+The last three steps always run. That covers a failing suite, nothing to run, and a crash of the action itself. A reservation nobody hands back holds the device for two hours.
 
-Everything that can be wrong is checked before a device is taken: a missing entry point, a `workdir` outside the checkout, an image that was never built. A typo should cost a second, not a device.
+Everything that can be wrong is checked before a device is taken: nothing to run, a `workdir` outside the checkout, an image that was never built. A typo should cost a second, not a device.
 
 The wipe goes through the lab node, not through the device. It works on a board this run crashed. It zeroes the partition table, `/boot` and the start of the root filesystem, so the device does not boot until the next run flashes it.
 
@@ -152,7 +152,7 @@ CONTAINER_ENGINE=podman pytest -m docker
 
 podman run --rm -v "$PWD:/github/workspace" \
   -e GITHUB_WORKSPACE=/github/workspace \
-  -e INPUT_WORKDIR=examples -e INPUT_ENTRYPOINT=pytest \
+  -e INPUT_WORKDIR=examples -e INPUT_RUN=pytest \
   lab-moonforge-action
 ```
 

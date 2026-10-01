@@ -29,7 +29,7 @@ def check_under(path, root, what):
 
 def arguments():
     """Any number of arguments, split the way a shell would split them."""
-    return shlex.split(inputs.get("args"))
+    return shlex.split(inputs.get("run_args"))
 
 
 def directories():
@@ -69,7 +69,7 @@ def plan():
     if runner not in RUNNERS:
         inputs.fail("unknown runner: " + runner)
 
-    entrypoint = inputs.get("entrypoint", required=True)
+    entrypoint = inputs.get("run", required=True)
     workdir, outdir = directories()
     args = arguments()
 

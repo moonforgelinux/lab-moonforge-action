@@ -2,19 +2,21 @@ name: 'lab-moonforge-action'
 description: 'Run a Moonforge test suite in a container, optionally on a lab device'
 
 inputs:
-  entrypoint:
+  # Not `entrypoint` or `args`: GitHub reserves both inside `with:` for
+  # container actions, and uses them for the docker run itself.
+  run:
     description: 'What to run: a test path for the pytest runner, or a program for the command runner'
     required: true
-  args:
-    description: 'Arguments for the entry point, any number of them, split the way a shell would split them'
+  run_args:
+    description: 'Arguments for it, any number of them, split the way a shell would split them'
     required: false
     default: ''
   runner:
-    description: 'How to run the entry point: pytest or command'
+    description: 'How to run it: pytest or command'
     required: false
     default: 'pytest'
   workdir:
-    description: 'Directory in the checkout the tests live in; the entry point runs from here'
+    description: 'Directory in the checkout the tests live in; the run happens from here'
     required: false
     default: '.'
   outdir:
@@ -48,7 +50,7 @@ outputs:
   outdir:
     description: 'Output directory, relative to the workspace root, ready to hand to upload-artifact'
   exit_code:
-    description: 'Exit status of the entry point'
+    description: 'Exit status of what was run'
 
 runs:
   using: docker

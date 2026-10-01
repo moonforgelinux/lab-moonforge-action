@@ -52,14 +52,14 @@ def run(tmp_path):
 
 
 def test_the_image_runs_a_pytest_suite(run):
-    done = run(workdir="pytest", entrypoint="test_smoke.py")
+    done = run(workdir="pytest", run="test_smoke.py")
 
     assert done.returncode == 0, done.stdout + done.stderr
     assert "2 passed" in done.stdout
 
 
 def test_the_suite_reports_into_the_output_directory(run):
-    done = run(workdir="pytest", entrypoint="test_smoke.py")
+    done = run(workdir="pytest", run="test_smoke.py")
 
     outdir = done.workspace / "pytest" / "test-results"
     assert (outdir / "junit.xml").is_file()
@@ -68,7 +68,7 @@ def test_the_suite_reports_into_the_output_directory(run):
 
 
 def test_a_failing_suite_gives_the_container_its_exit_status(run):
-    done = run(runner="command", entrypoint="sh", args="-c 'exit 5'")
+    done = run(runner="command", run="sh", run_args="-c 'exit 5'")
 
     assert done.returncode == 5
     assert done.outputs["exit_code"] == "5"
@@ -76,7 +76,7 @@ def test_a_failing_suite_gives_the_container_its_exit_status(run):
 
 def test_the_cache_stays_out_of_the_checkout(run):
     """A root-owned .pytest_cache in the tree breaks the next job."""
-    done = run(workdir="pytest", entrypoint="test_smoke.py")
+    done = run(workdir="pytest", run="test_smoke.py")
 
     assert not (done.workspace / "pytest" / ".pytest_cache").exists()
     assert (done.workspace / "pytest" / "test-results" /
