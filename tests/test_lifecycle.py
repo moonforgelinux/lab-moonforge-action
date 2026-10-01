@@ -161,3 +161,11 @@ def test_storage_that_cannot_be_cleared_does_not_fail_the_run(run_action):
     assert done.returncode == 0
     assert "::warning::could not clear stub-rpi5-01" in done.stdout
     assert done.calls[-1] == "lease -q"
+
+
+def test_a_missing_service_url_is_called_out(run_action):
+    """Otherwise it surfaces as a refused connection to localhost."""
+    done = run_action(**lab(dut_control_url=""))
+
+    assert done.returncode == 0
+    assert "::warning::dut_control_url is empty" in done.stdout
