@@ -75,3 +75,13 @@ def test_the_action_builds_its_own_image_until_there_is_a_release():
     runs = action()["runs"]
     assert runs["using"] == "docker"
     assert runs["image"] == "Dockerfile"
+
+
+def test_no_input_is_named_after_a_reserved_key():
+    """
+    GitHub keeps `entrypoint` and `args` for itself inside `with:` on a
+    container action, and feeds them to the docker run. An input by
+    either name is passed as INPUT_* and also silently overrides the
+    image, which fails before the action starts.
+    """
+    assert not {"entrypoint", "args"} & set(action()["inputs"])

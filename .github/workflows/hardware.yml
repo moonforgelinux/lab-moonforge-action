@@ -62,7 +62,7 @@ jobs:
         id: tests
         uses: ./
         with:
-          entrypoint: examples/pytest/test_device.py
+          run: examples/pytest/test_device.py
           dut_pool: ${{ github.event.inputs.pool }}
           dut_image: build/moonforge.wic.bz2
           dut_control_url: ${{ vars.DUT_CONTROL_URL }}

@@ -8,24 +8,24 @@ def test_arguments_of_an_unset_input_is_empty():
 
 
 def test_arguments_splits_a_single_line_the_way_a_shell_would(given):
-    given(args='-k "not slow" --reruns 2')
+    given(run_args='-k "not slow" --reruns 2')
     assert runner.arguments() == ["-k", "not slow", "--reruns", "2"]
 
 
 def test_arguments_treats_newlines_as_whitespace(given):
-    given(args="-k\nsmoke\n--reruns\n2\n")
+    given(run_args="-k\nsmoke\n--reruns\n2\n")
     assert runner.arguments() == ["-k", "smoke", "--reruns", "2"]
 
 
 def test_arguments_keeps_a_quoted_value_in_one_piece(given):
-    given(args='--deselect\n"tests/test_a.py::test_b[a b]"')
+    given(run_args='--deselect\n"tests/test_a.py::test_b[a b]"')
     assert runner.arguments() == [
         "--deselect", "tests/test_a.py::test_b[a b]",
     ]
 
 
 def test_arguments_takes_as_many_as_it_is_given(given):
-    given(args="\n".join(f"--flag-{n}" for n in range(64)))
+    given(run_args="\n".join(f"--flag-{n}" for n in range(64)))
     assert len(runner.arguments()) == 64
 
 
@@ -101,22 +101,22 @@ def test_a_command_runner_falls_back_to_a_program_on_path(tmp_path):
 
 
 def test_an_unknown_runner_is_refused(workspace, given, capsys):
-    given(runner="robot", entrypoint="suite")
+    given(runner="robot", run="suite")
     with pytest.raises(SystemExit):
         runner.plan()
     assert "unknown runner: robot" in capsys.readouterr().out
 
 
-def test_the_entry_point_is_required(workspace, given, capsys):
+def test_something_to_run_is_required(workspace, given, capsys):
     given(runner="pytest")
     with pytest.raises(SystemExit):
         runner.plan()
-    assert "entrypoint is required" in capsys.readouterr().out
+    assert "run is required" in capsys.readouterr().out
 
 
 def test_a_plan_carries_the_command_and_the_directories(workspace, given):
     (workspace / "tests").mkdir()
-    given(entrypoint="integration", workdir="tests", args="-x")
+    given(run="integration", workdir="tests", run_args="-x")
 
     made = runner.plan()
 
@@ -128,6 +128,6 @@ def test_a_plan_carries_the_command_and_the_directories(workspace, given):
 
 def test_a_plan_for_a_command_runner_leaves_the_command_alone(workspace,
                                                               given):
-    given(runner="command", entrypoint="true", args="--now")
+    given(runner="command", run="true", run_args="--now")
 
     assert runner.plan().command == ["true", "--now"]

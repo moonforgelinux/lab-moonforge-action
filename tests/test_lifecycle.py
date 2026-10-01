@@ -12,13 +12,13 @@ def lab(**extra):
         "dut_control_client_key": "a-client-key",
         "dut_control_url": "http://lab.invalid:8000",
         "runner": "command",
-        "entrypoint": "true",
+        "run": "true",
         **extra,
     }
 
 
 def test_no_pool_means_the_lab_is_never_contacted(run_action):
-    done = run_action(runner="command", entrypoint="true")
+    done = run_action(runner="command", run="true")
 
     assert done.returncode == 0
     assert done.calls == []
@@ -38,14 +38,14 @@ def test_a_device_is_reserved_and_handed_back(run_action):
 
 def test_the_device_goes_back_after_a_failing_suite(run_action):
     """The reservation lasts two hours if nobody leases it."""
-    done = run_action(**lab(entrypoint="sh", args="-c 'exit 7'"))
+    done = run_action(**lab(run="sh", run_args="-c 'exit 7'"))
 
     assert done.returncode == 7
     assert done.calls[-1] == "lease -q"
 
 
 def test_the_device_goes_back_after_a_broken_entry_point(run_action):
-    done = run_action(**lab(entrypoint="no-such-program"))
+    done = run_action(**lab(run="no-such-program"))
 
     assert done.returncode == 2
     assert done.calls[-1] == "lease -q"
@@ -79,8 +79,8 @@ def test_the_token_is_masked_before_anything_could_carry_it(run_action):
 
 def test_the_suite_is_told_where_the_device_is(run_action):
     done = run_action(**lab(
-        entrypoint="sh",
-        args="-c 'echo $DUT_NAME $DUT_IP $DUT_SSH_PORT'"))
+        run="sh",
+        run_args="-c 'echo $DUT_NAME $DUT_IP $DUT_SSH_PORT'"))
 
     assert "stub-rpi5-01 192.0.2.40 22" in done.stdout
 
@@ -88,8 +88,8 @@ def test_the_suite_is_told_where_the_device_is(run_action):
 def test_the_suite_is_not_given_the_client_key(run_action):
     """The token drives one device; the key reserves everyone else's."""
     done = run_action(**lab(
-        entrypoint="sh",
-        args="-c 'echo [${DUT_CONTROL_CLIENT_KEY-unset}]'"))
+        run="sh",
+        run_args="-c 'echo [${DUT_CONTROL_CLIENT_KEY-unset}]'"))
 
     assert "[unset]" in done.stdout
 
@@ -103,7 +103,7 @@ def test_the_log_says_which_device_ran(run_action):
 
 
 def test_a_pool_without_a_key_is_refused_before_anything_is_taken(run_action):
-    done = run_action(dut_pool="rpi5", runner="command", entrypoint="true")
+    done = run_action(dut_pool="rpi5", runner="command", run="true")
 
     assert done.returncode == 2
     assert done.calls == []

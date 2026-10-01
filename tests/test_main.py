@@ -22,8 +22,8 @@ def outputs(tmp_path, monkeypatch):
 
 def shell(given, script, **rest):
     """Run a shell snippet as the entry point."""
-    given(runner="command", entrypoint="sh",
-          args="-c " + shlex.quote(script), **rest)
+    given(runner="command", run="sh",
+          run_args="-c " + shlex.quote(script), **rest)
     return main.main()
 
 
@@ -79,14 +79,14 @@ def test_the_working_and_output_directories_are_exported(workspace, given):
 
 
 def test_a_malformed_env_line_is_refused(workspace, given, capsys):
-    given(entrypoint="true", runner="command", env="DEVICE_HOST 192.168.1.40")
+    given(run="true", runner="command", env="DEVICE_HOST 192.168.1.40")
     with pytest.raises(SystemExit):
         main.main()
     assert "env takes NAME=VALUE lines" in capsys.readouterr().out
 
 
 def test_a_missing_entry_point_says_so(workspace, given, capsys):
-    given(entrypoint="no-such-program", runner="command")
+    given(run="no-such-program", runner="command")
     with pytest.raises(SystemExit):
         main.main()
     assert "entry point not found" in capsys.readouterr().out
@@ -97,7 +97,7 @@ def test_an_entry_point_that_cannot_be_executed_says_so(workspace, given,
     script = workspace / "run.sh"
     script.write_text("#!/bin/sh\n")
     script.chmod(0o644)
-    given(entrypoint="run.sh", runner="command")
+    given(run="run.sh", runner="command")
 
     with pytest.raises(SystemExit):
         main.main()
@@ -130,5 +130,5 @@ def test_a_workspace_we_cannot_hand_back_only_warns(workspace, given,
 
 
 def test_the_plan_and_the_run_agree_on_the_output_directory(workspace, given):
-    given(entrypoint="suite", workdir=".", outdir="results")
+    given(run="suite", workdir=".", outdir="results")
     assert runner.plan().outdir == workspace / "results"
