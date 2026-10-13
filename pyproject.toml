@@ -42,8 +42,9 @@ suite = [
 ]
 # The second image only. Pulls the whole imaging stack behind it.
 robot = [
-  "robotframework>=6.0",
+  "robotframework>=7.0",
   "robotframework-doctestlibrary>=0.33",
+  "robotframework-sshlibrary>=3.8",
 ]
 test = [
   "pytest>=7.0",
