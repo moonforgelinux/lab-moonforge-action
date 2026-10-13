@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from test_image import IMAGE
+from test_image import IMAGE, ROBOT_IMAGE
 
 WORKFLOWS = Path(__file__).resolve().parents[1] / ".github" / "workflows"
 
@@ -42,6 +42,12 @@ def test_the_matrix_covers_the_lowest_supported_python():
 def test_the_image_job_builds_the_tag_the_container_tests_look_for():
     build = step(load("test.yml"), "image", "run", "docker build")
     assert IMAGE in build["run"]
+
+
+def test_the_image_job_builds_the_robot_tag_too():
+    """Otherwise its container tests skip and say nothing."""
+    build = step(load("test.yml"), "image", "run", "Dockerfile.robot")
+    assert ROBOT_IMAGE in build["run"]
 
 
 def test_nothing_but_a_tag_publishes_an_image():
@@ -91,3 +97,12 @@ def test_the_hardware_run_is_manual_only():
     assert set(asked) == {"pool", "image_url"}
     # A pool that does not exist costs a failed run, not a device.
     assert asked["pool"]["options"] == ["raspberrypi5", "raspberrypi4"]
+
+
+def test_the_robot_image_is_amd64_only():
+    """PyMuPDF, which the doctest library needs, has no musl aarch64
+    wheel. Building for arm64 would mean emulating and then failing."""
+    build = step(load("release.yml"), "robot", "uses", "build-push")
+
+    assert build["with"]["platforms"] == "linux/amd64"
+    assert "Dockerfile.robot" == build["with"]["file"]

@@ -68,6 +68,15 @@ jobs:
       - name: Build the image
         run: docker build -t lab-moonforge-action:ci .
 
+      # From the one above, so only the robot stack is new work here.
+      # tests/test_image.py looks for exactly this tag too, and skips
+      # the robot cases when it is missing.
+      - name: Build the robot image
+        run: |
+          docker build -f Dockerfile.robot \
+            --build-arg BASE=lab-moonforge-action:ci \
+            -t lab-moonforge-action:robot .
+
       # The tests shell out to $CONTAINER_ENGINE, podman by default
       # because that is what works on a developer's machine here.
       - name: Run the action inside it
