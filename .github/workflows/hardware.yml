@@ -44,27 +44,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # The URL goes through the environment, not into the script, so
-      # it cannot end up being read as shell.
-      - name: Fetch the image
-        run: |
-          mkdir -p build
-          curl -fsSL -o build/moonforge.wic.bz2 "$IMAGE_URL"
-          # A bmap next to the image makes the flash write only the
-          # blocks it has to. Best effort: the flash works without it.
-          curl -fsSL -o build/moonforge.wic.bmap "${IMAGE_URL%.bz2}.bmap" \
-            || rm -f build/moonforge.wic.bmap
-          ls -l build/
-        env:
-          IMAGE_URL: ${{ github.event.inputs.image_url }}
-
       - name: Flash a device and test it
         id: tests
         uses: ./
         with:
           run: examples/pytest/test_device.py
           dut_pool: ${{ github.event.inputs.pool }}
-          dut_image: build/moonforge.wic.bz2
+          dut_image: ${{ github.event.inputs.image_url }}
           dut_control_url: ${{ vars.DUT_CONTROL_URL }}
           dut_control_client_key: ${{ secrets.DUT_CONTROL_CLIENT_KEY }}
 
