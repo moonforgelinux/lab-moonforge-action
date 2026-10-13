@@ -1,3 +1,5 @@
+import shutil
+
 import pytest
 
 from lab_action import inputs, runner
@@ -89,6 +91,22 @@ def test_pytest_command_ends_with_the_entry_point(tmp_path):
     assert command[-1] == "suite"
 
 
+def test_robot_command_reports_into_outdir(tmp_path):
+    command = runner.robot_command("suite", [], tmp_path)
+
+    assert command[:5] == [
+        "robot", "--outputdir", str(tmp_path), "--xunit", "xunit.xml",
+    ]
+    assert command[-1] == "suite"
+
+
+def test_robot_command_lets_the_caller_override_our_flags(tmp_path):
+    command = runner.robot_command("suite", ["--xunit", "mine.xml"],
+                                   tmp_path)
+
+    assert command.index("mine.xml") > command.index("xunit.xml")
+
+
 def test_a_command_runner_prefers_a_file_from_the_checkout(tmp_path):
     script = tmp_path / "run-tests.sh"
     script.write_text("#!/bin/sh\n")
@@ -131,3 +149,25 @@ def test_a_plan_for_a_command_runner_leaves_the_command_alone(workspace,
     given(runner="command", run="true", run_args="--now")
 
     assert runner.plan().command == ["true", "--now"]
+
+
+def test_the_robot_runner_needs_the_robot_image(workspace, given,
+                                                capsys, monkeypatch):
+    """Said before a device is taken, not by the failing subprocess."""
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    given(runner="robot", run="suite")
+
+    with pytest.raises(SystemExit):
+        runner.plan()
+
+    assert "needs the robot image" in capsys.readouterr().out
+
+
+def test_a_robot_plan_runs_robot(workspace, given, monkeypatch):
+    # Pretended, so the test says the same thing on a host that
+    # happens to have robot installed and on one that does not.
+    monkeypatch.setattr(shutil, "which", lambda _: "/usr/bin/robot")
+    (workspace / "suites").mkdir()
+    given(runner="robot", run="smoke.robot", workdir="suites")
+
+    assert runner.plan().command[0] == "robot"
