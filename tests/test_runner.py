@@ -101,10 +101,10 @@ def test_a_command_runner_falls_back_to_a_program_on_path(tmp_path):
 
 
 def test_an_unknown_runner_is_refused(workspace, given, capsys):
-    given(runner="robot", run="suite")
+    given(runner="cucumber", run="suite")
     with pytest.raises(SystemExit):
         runner.plan()
-    assert "unknown runner: robot" in capsys.readouterr().out
+    assert "unknown runner: cucumber" in capsys.readouterr().out
 
 
 def test_something_to_run_is_required(workspace, given, capsys):

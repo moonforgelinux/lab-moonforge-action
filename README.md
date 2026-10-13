@@ -46,9 +46,9 @@ On a device from the lab, flashing it first:
 
 | Input | Description | Default |
 | --- | --- | --- |
-| `run` | What to run: a test path for the `pytest` runner, a program for `command`. Required | |
+| `run` | What to run: a test path for `pytest`, a suite for `robot`, a program for `command`. Required | |
 | `run_args` | Arguments for it, any number of them, split the way a shell would | `''` |
-| `runner` | `pytest` or `command` | `pytest` |
+| `runner` | `pytest`, `robot` or `command` | `pytest` |
 | `workdir` | Directory in the checkout the tests live in; the run happens from here | `.` |
 | `outdir` | Directory for reports, relative to `workdir` | `test-results` |
 | `env` | One `NAME=VALUE` per line, exported to what is run | `''` |

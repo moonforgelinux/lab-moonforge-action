@@ -2,12 +2,13 @@
 
 import os
 import shlex
+import shutil
 from pathlib import Path
 from typing import NamedTuple
 
 from . import inputs
 
-RUNNERS = ("pytest", "command")
+RUNNERS = ("pytest", "robot", "command")
 
 
 class Plan(NamedTuple):
@@ -56,6 +57,22 @@ def pytest_command(entrypoint, args, outdir):
     ]
 
 
+def robot_command(entrypoint, args, outdir):
+    """
+    Our flags come first, so the caller's own flags win over them.
+
+    Robot writes log.html and report.html into the output directory by
+    itself. The xunit file is asked for, to match what pytest leaves.
+    """
+    return [
+        "robot",
+        "--outputdir", str(outdir),
+        "--xunit", "xunit.xml",
+        *args,
+        entrypoint,
+    ]
+
+
 def direct_command(entrypoint, args, workdir):
     """A file from the checkout if there is one, otherwise from PATH."""
     candidate = workdir / entrypoint
@@ -75,6 +92,12 @@ def plan():
 
     if runner == "pytest":
         command = pytest_command(entrypoint, args, outdir)
+    elif runner == "robot":
+        # Only the robot image carries it. Said here, this costs a
+        # second; said by the subprocess, it costs a reservation.
+        if not shutil.which("robot"):
+            inputs.fail("the robot runner needs the robot image")
+        command = robot_command(entrypoint, args, outdir)
     else:
         command = direct_command(entrypoint, args, workdir)
     return Plan(command, workdir, outdir)
