@@ -126,3 +126,26 @@ def test_the_robot_image_still_runs_pytest(robot_run):
 
     assert done.returncode == 0, done.stdout + done.stderr
     assert "2 passed" in done.stdout
+
+
+def test_the_robot_device_suite_skips_without_a_device(robot_run):
+    """The same suite has to pass on the runner and in the lab."""
+    done = robot_run(workdir="robot", runner="robot", run="device.robot")
+
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "3 skipped" in done.stdout
+
+
+def test_the_robot_device_suite_is_valid(robot_run):
+    """
+    A dry run resolves every keyword without connecting to anything.
+
+    Without it nothing here would check the SSH half of that suite:
+    the skip path never reaches it, and the lab run that does is
+    manual.
+    """
+    done = robot_run(workdir="robot", runner="robot", run="device.robot",
+                     run_args="--dryrun")
+
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "3 tests, 3 passed" in done.stdout
