@@ -42,7 +42,7 @@ inputs:
     required: false
     default: ''
   dut_image:
-    description: 'Image to flash before the tests, relative to workdir. Left empty, the device is used as it is'
+    description: 'Image to flash before the tests: a path relative to workdir, or a URL to download it from. Left empty, the device is used as it is'
     required: false
     default: ''
 
