@@ -10,22 +10,23 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = os.environ.get("CONTAINER_ENGINE", "podman")
 IMAGE = os.environ.get("LAB_ACTION_IMAGE", "lab-moonforge-action:ci")
+ROBOT_IMAGE = os.environ.get("LAB_ACTION_ROBOT_IMAGE",
+                             "lab-moonforge-action:robot")
 
 pytestmark = pytest.mark.docker
 
 
-@pytest.fixture(scope="module", autouse=True)
-def an_image():
+def built(image):
+    """Skip rather than fail: not every checkout has built the image."""
     if not shutil.which(ENGINE):
         pytest.skip(ENGINE + " is not installed")
-    present = subprocess.run([ENGINE, "image", "inspect", IMAGE],
+    present = subprocess.run([ENGINE, "image", "inspect", image],
                              capture_output=True)
     if present.returncode:
-        pytest.skip(IMAGE + " has not been built")
+        pytest.skip(image + " has not been built")
 
 
-@pytest.fixture
-def run(tmp_path):
+def runner_for(tmp_path, image):
     """Run the action over a copy of examples/, as a container action."""
     workspace = tmp_path / "workspace"
     shutil.copytree(ROOT / "examples", workspace)
@@ -41,7 +42,7 @@ def run(tmp_path):
         for name, value in given.items():
             command += ["-e", f"INPUT_{name.upper()}={value}"]
 
-        done = subprocess.run(command + [IMAGE], capture_output=True,
+        done = subprocess.run(command + [image], capture_output=True,
                               text=True)
         done.workspace = workspace
         done.outputs = dict(
@@ -49,6 +50,18 @@ def run(tmp_path):
             if "=" in line)
         return done
     return run_action
+
+
+@pytest.fixture
+def run(tmp_path):
+    built(IMAGE)
+    return runner_for(tmp_path, IMAGE)
+
+
+@pytest.fixture
+def robot_run(tmp_path):
+    built(ROBOT_IMAGE)
+    return runner_for(tmp_path, ROBOT_IMAGE)
 
 
 def test_the_image_runs_a_pytest_suite(run):
@@ -81,3 +94,35 @@ def test_the_cache_stays_out_of_the_checkout(run):
     assert not (done.workspace / "pytest" / ".pytest_cache").exists()
     assert (done.workspace / "pytest" / "test-results" /
             "pytest-cache").is_dir()
+
+
+def test_the_default_image_has_no_robot(run, capsys):
+    """The robot stack is a gigabyte. It stays in its own tag."""
+    done = run(workdir="robot", runner="robot", run="smoke.robot")
+
+    assert done.returncode == 2
+    assert "needs the robot image" in done.stdout
+
+
+def test_the_robot_image_runs_a_robot_suite(robot_run):
+    done = robot_run(workdir="robot", runner="robot", run="smoke.robot")
+
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "2 tests, 2 passed" in done.stdout
+
+
+def test_the_robot_suite_reports_into_the_output_directory(robot_run):
+    done = robot_run(workdir="robot", runner="robot", run="smoke.robot")
+
+    outdir = done.workspace / "robot" / "test-results"
+    assert (outdir / "xunit.xml").is_file()
+    assert (outdir / "log.html").is_file()
+    assert (outdir / "smoke.txt").read_text() == "the suite wrote this\n"
+
+
+def test_the_robot_image_still_runs_pytest(robot_run):
+    """It is the default image plus robot, not a different one."""
+    done = robot_run(workdir="pytest", run="test_smoke.py")
+
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "2 passed" in done.stdout
