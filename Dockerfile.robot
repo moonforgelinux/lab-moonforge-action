@@ -9,7 +9,8 @@
 #   libraries they bind come from apk too.
 #
 # Built from the default image, so both carry the same lab_action and
-# the same dut-control client.
+# the same dut-control client. BASE has to come from this same commit:
+# the package and the extras list below are the ones it carries.
 ARG BASE=lab-moonforge-action:latest
 FROM ${BASE}
 

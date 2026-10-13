@@ -98,7 +98,7 @@ A suite logs in with an empty root password. A Moonforge image built with `kas/c
 
 ## Examples
 
-`examples/robot` is the same smoke suite written for Robot Framework.
+`examples/robot` is both of those written for Robot Framework, using `SSHLibrary` instead of `sshpass`. `device.robot` skips its whole suite in `Suite Setup` when `DUT_IP` is unset, which is the Robot equivalent of the pytest skip.
 
 `examples/pytest` is a suite that runs either way. Two checks need nothing but the action. Three log in to the device. They check that it runs the image that was flashed, that the root filesystem is read only, and that `/data` is a writable overlay. Those three skip themselves when `DUT_IP` is unset, so the same suite passes on the runner and in the lab.
 
@@ -114,7 +114,7 @@ The `robot` runner needs a second image, and a second action to pick it:
           run: smoke.robot
 ```
 
-It is the default image plus `robotframework` and `robotframework-doctestlibrary`, so everything above works there too, `pytest` included. Robot writes `log.html`, `report.html`, `output.xml` and `xunit.xml` into `outdir`.
+It is the default image plus `robotframework`, `robotframework-sshlibrary` and `robotframework-doctestlibrary`, so everything above works there too, `pytest` included. Robot writes `log.html`, `report.html`, `output.xml` and `xunit.xml` into `outdir`.
 
 It is a separate tag because of what the doctest library drags behind it. OpenCV, PyMuPDF, scipy, scikit-image, ImageMagick, zbar, libdmtx and tesseract take the image from 123 MB to about a gigabyte. PyMuPDF has no musl wheel for aarch64, so this tag is **amd64 only**, while the default one is both.
 
