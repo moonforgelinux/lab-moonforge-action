@@ -98,6 +98,8 @@ A suite logs in with an empty root password. A Moonforge image built with `kas/c
 
 ## Examples
 
+`examples/robot` is the same smoke suite written for Robot Framework.
+
 `examples/pytest` is a suite that runs either way. Two checks need nothing but the action. Three log in to the device. They check that it runs the image that was flashed, that the root filesystem is read only, and that `/data` is a writable overlay. Those three skip themselves when `DUT_IP` is unset, so the same suite passes on the runner and in the lab.
 
 ## The lab lifecycle
