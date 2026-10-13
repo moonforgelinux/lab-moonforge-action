@@ -62,7 +62,7 @@ All optional. Leave `dut_pool` empty and none of the rest applies.
 | `dut_pool` | Pool to reserve a device from. Setting it turns on everything below | `''` |
 | `dut_control_url` | Base URL of the dut-control service | `''` |
 | `dut_control_client_key` | Client key. Required whenever `dut_pool` is set | `''` |
-| `dut_image` | Image to flash before testing, relative to `workdir`. Empty uses the device as it is | `''` |
+| `dut_image` | Image to flash before testing. A path relative to `workdir`, or an `http`/`https` URL. Empty uses the device as it is | `''` |
 
 A device is asked for by pool, not by name. To reach one board, give it a pool of its own in the lab configuration. A board can be in several pools at once.
 
@@ -117,6 +117,8 @@ lease        hand the device back
 ```
 
 Without `dut_image`, the three flashing steps are skipped and the device is used in whatever state it is in.
+
+Given a URL, the action downloads the image itself, before taking a device. It looks for a `.bmap` next to it under the two conventional names and downloads that too when it is there; a bmap makes the flash write only the blocks it has to. There is no need for a step of your own to fetch the image first.
 
 The last three steps always run. That covers a failing suite, nothing to run, and a crash of the action itself. A reservation nobody hands back holds the device for two hours.
 

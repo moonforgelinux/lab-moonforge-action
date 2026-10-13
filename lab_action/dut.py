@@ -2,7 +2,12 @@
 
 import json
 import os
+import shutil
 import subprocess
+import tempfile
+import urllib.parse
+import urllib.request
+from pathlib import Path
 
 from . import inputs
 
@@ -134,11 +139,59 @@ class Lab:
         }
 
 
+def _fetch(url, into):
+    """Save a URL into a directory. Returns the local path."""
+    name = Path(urllib.parse.urlparse(url).path).name
+    if not name:
+        inputs.fail("dut_image names no file: " + url)
+
+    target = into / name
+    try:
+        with urllib.request.urlopen(url) as response:
+            with target.open("wb") as handle:
+                shutil.copyfileobj(response, handle)
+    except OSError as error:
+        inputs.fail(f"could not fetch {url}: {error}")
+    return target
+
+
+def _fetch_bmap(url, image):
+    """
+    Best effort, like the client's own search for one beside the image.
+
+    Two names are conventional, so both are tried. Without a bmap the
+    flash writes the whole image instead of the mapped blocks.
+    """
+    base = url.rsplit("/", 1)[0]
+    for name in (image.with_suffix(".bmap").name, image.name + ".bmap"):
+        target = image.parent / name
+        try:
+            with urllib.request.urlopen(base + "/" + name) as response:
+                with target.open("wb") as handle:
+                    shutil.copyfileobj(response, handle)
+            return
+        except OSError:
+            target.unlink(missing_ok=True)
+
+
 def _image(workdir):
-    """The image to flash. Checked before any device is taken."""
+    """
+    The image to flash: a path in the checkout, or a URL to fetch.
+
+    Fetched and checked before a device is taken, so a bad URL costs a
+    second rather than a reservation.
+    """
     given = inputs.get("dut_image")
     if not given:
         return None
+
+    if urllib.parse.urlparse(given).scheme in ("http", "https"):
+        inputs.log("fetching " + given.split("?")[0])
+        # Not cleaned up: the container is thrown away with it.
+        into = Path(tempfile.mkdtemp(prefix="lab-image-"))
+        image = _fetch(given, into)
+        _fetch_bmap(given, image)
+        return image
 
     image = (workdir / given).resolve()
     if not image.is_file():
