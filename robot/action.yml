@@ -1,0 +1,66 @@
+# The same action as the one at the root, on the image that carries
+# Robot Framework. The inputs are the same and a test keeps them
+# that way; only the image differs.
+#
+# Published, not built here: a container action builds its
+# Dockerfile with the action directory as the context, and that
+# cannot reach the package at the root. So this one starts working
+# at the first release, not before.
+
+name: 'lab-moonforge-action (robot)'
+description: 'Run a Robot Framework suite in a container, optionally on a lab device'
+
+inputs:
+  # Not `entrypoint` or `args`: GitHub reserves both inside `with:` for
+  # container actions, and uses them for the docker run itself.
+  run:
+    description: 'What to run: a test path for the pytest runner, or a program for the command runner'
+    required: true
+  run_args:
+    description: 'Arguments for it, any number of them, split the way a shell would split them'
+    required: false
+    default: ''
+  runner:
+    description: 'How to run it: pytest or command'
+    required: false
+    default: 'pytest'
+  workdir:
+    description: 'Directory in the checkout the tests live in; the run happens from here'
+    required: false
+    default: '.'
+  outdir:
+    description: 'Directory for reports and artifacts, relative to workdir'
+    required: false
+    default: 'test-results'
+  env:
+    description: 'One NAME=VALUE per line, exported to the entry point'
+    required: false
+    default: ''
+
+  # --- lab hardware. Leave dut_pool empty to run on the runner itself.
+  dut_pool:
+    description: 'dut-control pool to reserve a device from. Setting it wraps the run in the lab lifecycle. A specific device is addressed by giving it a pool of its own in the lab configuration'
+    required: false
+    default: ''
+  dut_control_url:
+    description: 'Base URL of the dut-control service'
+    required: false
+    default: ''
+  dut_control_client_key:
+    description: 'dut-control client key; required whenever dut_pool is set'
+    required: false
+    default: ''
+  dut_image:
+    description: 'Image to flash before the tests: a path relative to workdir, or a URL to download it from. Left empty, the device is used as it is'
+    required: false
+    default: ''
+
+outputs:
+  outdir:
+    description: 'Output directory, relative to the workspace root, ready to hand to upload-artifact'
+  exit_code:
+    description: 'Exit status of what was run'
+
+runs:
+  using: docker
+  image: 'docker://ghcr.io/moonforgelinux/lab-moonforge-action:0.1.0-robot'

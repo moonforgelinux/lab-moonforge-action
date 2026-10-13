@@ -102,6 +102,24 @@ A suite logs in with an empty root password. A Moonforge image built with `kas/c
 
 `examples/pytest` is a suite that runs either way. Two checks need nothing but the action. Three log in to the device. They check that it runs the image that was flashed, that the root filesystem is read only, and that `/data` is a writable overlay. Those three skip themselves when `DUT_IP` is unset, so the same suite passes on the runner and in the lab.
 
+## Robot Framework
+
+The `robot` runner needs a second image, and a second action to pick it:
+
+```yml
+      - uses: moonforgelinux/lab-moonforge-action/robot@v0.1.0
+        with:
+          runner: robot
+          workdir: suites
+          run: smoke.robot
+```
+
+It is the default image plus `robotframework` and `robotframework-doctestlibrary`, so everything above works there too, `pytest` included. Robot writes `log.html`, `report.html`, `output.xml` and `xunit.xml` into `outdir`.
+
+It is a separate tag because of what the doctest library drags behind it. OpenCV, PyMuPDF, scipy, scikit-image, ImageMagick, zbar, libdmtx and tesseract take the image from 123 MB to about a gigabyte. PyMuPDF has no musl wheel for aarch64, so this tag is **amd64 only**, while the default one is both.
+
+Asking for `runner: robot` on the default image fails before a device is reserved, with a message saying which image to use.
+
 ## The lab lifecycle
 
 With `dut_pool` set, the run becomes:

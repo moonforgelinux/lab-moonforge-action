@@ -5,14 +5,16 @@ from pathlib import Path
 
 import yaml
 
+import lab_action
+
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "lab_action"
 READERS = {"get", "get_int", "lines"}
 WRITERS = {"set_output"}
 
 
-def action():
-    return yaml.safe_load((ROOT / "action.yml").read_text())
+def action(name="action.yml"):
+    return yaml.safe_load((ROOT / name).read_text())
 
 
 def input_call(node):
@@ -85,3 +87,19 @@ def test_no_input_is_named_after_a_reserved_key():
     image, which fails before the action starts.
     """
     assert not {"entrypoint", "args"} & set(action()["inputs"])
+
+
+def test_the_robot_action_declares_the_same_inputs_and_outputs():
+    """Two files because GitHub pins one image per action."""
+    robot = action("robot/action.yml")
+
+    assert robot["inputs"] == action()["inputs"]
+    assert robot["outputs"] == action()["outputs"]
+
+
+def test_the_robot_action_points_at_the_tag_for_this_version():
+    """So bumping the version without republishing fails here."""
+    image = action("robot/action.yml")["runs"]["image"]
+
+    assert image.endswith(f":{lab_action.__version__}-robot")
+    assert image.startswith("docker://ghcr.io/")
