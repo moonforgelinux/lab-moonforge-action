@@ -180,9 +180,9 @@ podman run --rm -v "$PWD:/github/workspace" \
 
 Inputs arrive as the `INPUT_*` environment variables GitHub sets for a container action, so a local run and a CI run take the same path.
 
-`action.yml` builds its image per job, so the action works from any ref. That costs about two minutes a run.
+`action.yml` names a published image, so a job pulls it instead of building one.
 
-Releasing: tag `vX.Y.Z`, which builds and pushes `ghcr.io/moonforgelinux/lab-moonforge-action:X.Y.Z` for amd64 and arm64. Then point the `image:` line of `action.yml` at that tag, so consumers get a fixed image instead of building one.
+Releasing: bump `__version__`, point the `image:` line of `action.yml` and `robot/action.yml` at the new version, then tag `vX.Y.Z`. The tag is what builds and pushes `ghcr.io/moonforgelinux/lab-moonforge-action:X.Y.Z` for amd64 and arm64, and `:X.Y.Z-robot` for amd64. The order matters: tag last, so the tag holds an action.yml that names the image that tag publishes.
 
 ## Legal
 
