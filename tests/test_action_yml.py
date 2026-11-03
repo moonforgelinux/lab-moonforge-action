@@ -72,11 +72,13 @@ def test_the_declared_defaults_are_the_ones_the_code_falls_back_to():
     assert checked, "no default was actually compared"
 
 
-def test_the_action_builds_its_own_image_until_there_is_a_release():
-    """This has to flip to the published tag when one exists."""
+def test_the_action_points_at_the_tag_for_this_version():
+    """So bumping the version without republishing fails here."""
     runs = action()["runs"]
+
     assert runs["using"] == "docker"
-    assert runs["image"] == "Dockerfile"
+    assert runs["image"].startswith("docker://ghcr.io/")
+    assert runs["image"].endswith(f":{lab_action.__version__}")
 
 
 def test_no_input_is_named_after_a_reserved_key():
