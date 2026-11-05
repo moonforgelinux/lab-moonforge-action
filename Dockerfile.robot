@@ -39,7 +39,7 @@ RUN set -eu; \
     : > "$info/RECORD"
 
 WORKDIR /src
-RUN pip install --no-cache-dir ".[robot]"
+RUN pip install --no-cache-dir --prefer-binary ".[robot]"
 
 # Fail the build rather than a run at the end of a lab reservation.
 RUN python3 -c "import robot; print(robot.version.VERSION)" \
