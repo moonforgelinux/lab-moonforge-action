@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Flash a device and test it
         id: tests
@@ -55,7 +55,7 @@ jobs:
           dut_control_client_key: ${{ secrets.DUT_CONTROL_CLIENT_KEY }}
 
       - name: Upload the reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: hardware-results
