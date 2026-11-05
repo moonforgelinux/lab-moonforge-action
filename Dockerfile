@@ -1,6 +1,6 @@
 # Pinned by digest, so rebuilding a release gives the same bits. This
 # is the index, not one architecture: both amd64 and arm64 are in it.
-FROM alpine:3.23@sha256:85fe1e81d6758c208f3e1eed4338a1997e19d4be002d4dd32d3100c9a8c010a0
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 
 # git for checkouts the suites may do themselves, ssh and sshpass so a
 # suite can log in to a device with the empty root password a debug
