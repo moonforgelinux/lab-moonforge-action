@@ -20,8 +20,10 @@ Log In To The Device
     Skip If    $ip == ''    no device; set dut_pool to run these
     ${port}=    Get Environment Variable    DUT_SSH_PORT    22
     Open Connection    ${ip}    port=${port}    timeout=60s
-    # The password is empty, not absent.
-    Login    root    ${EMPTY}
+    # The password is empty, not absent. Clear SSH_AUTH_SOCK so set allow_agent
+    # to bypass SSHLibrary's broken path.
+    Remove Environment Variable    SSH_AUTH_SOCK
+    Login    root    ${EMPTY}    allow_agent=${True}
 
 On Device
     [Documentation]    Run a command on the device and return what it
