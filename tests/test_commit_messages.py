@@ -8,6 +8,13 @@ from test_sanatizers import SCRIPTS
 CHECKER = "sanatizer-git-commit-messages"
 
 
+@pytest.fixture(autouse=True)
+def outside_a_pull_request(monkeypatch):
+    """CI sets these on a pull request, and the checker reads them."""
+    monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
+    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+
+
 def git(*args, cwd):
     subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
 
