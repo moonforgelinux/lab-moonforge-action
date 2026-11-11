@@ -39,7 +39,7 @@ The device runs the image that was flashed
 The root filesystem is read only
     [Documentation]    Moonforge is immutable; a writable root means the
     ...                wrong image.
-    ${options}=    On Device    findmnt -no OPTIONS /
+    ${options}=    On Device    awk '$2 == "/" {print $4}' /proc/mounts
     Should Contain    ${options.split(',')}    ro
 
 Data is a writable overlay

@@ -48,7 +48,8 @@ def test_the_device_runs_the_image_that_was_flashed():
 
 def test_the_root_filesystem_is_read_only():
     """Moonforge is immutable; a writable root means the wrong image."""
-    assert "ro" in on_device("findmnt -no OPTIONS /").split(",")
+    options = on_device("awk '$2 == \"/\" {print $4}' /proc/mounts")
+    assert "ro" in options.split(",")
 
 
 def test_data_is_a_writable_overlay():
