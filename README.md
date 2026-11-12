@@ -114,7 +114,7 @@ The `robot` runner needs a second image, and a second action to pick it:
           run: smoke.robot
 ```
 
-It is the default image plus `robotframework`, `robotframework-sshlibrary` and `robotframework-doctestlibrary`, so everything above works there too, `pytest` included. Robot writes `log.html`, `report.html`, `output.xml` and `xunit.xml` into `outdir`.
+It is the default image plus `robotframework`, `robotframework-sshlibrary`, `robotframework-doctestlibrary` and `robotframework-seleniumlibrary`, so everything above works there too, `pytest` included. Robot writes `log.html`, `report.html`, `output.xml` and `xunit.xml` into `outdir`.
 
 It is a separate tag because of what the doctest library drags behind it. OpenCV, PyMuPDF, scipy, scikit-image, ImageMagick, zbar, libdmtx and tesseract take the image from 123 MB to about a gigabyte. PyMuPDF has no musl wheel for aarch64, so this tag is **amd64 only**, while the default one is both.
 

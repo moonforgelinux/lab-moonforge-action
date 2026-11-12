@@ -46,4 +46,5 @@ RUN python3 -c "import robot; print(robot.version.VERSION)" \
  && python3 -c "import cv2; print(cv2.__version__)" \
  && python3 -c "import pymupdf" \
  && python3 -c "import DocTest" \
+ && python3 -c "import SeleniumLibrary" \
  && command -v robot > /dev/null
