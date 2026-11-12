@@ -63,4 +63,4 @@ outputs:
 
 runs:
   using: docker
-  image: 'docker://ghcr.io/moonforgelinux/lab-moonforge-action:0.1.0-robot'
+  image: 'docker://ghcr.io/moonforgelinux/lab-moonforge-action:0.2.0-robot'
