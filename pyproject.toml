@@ -44,6 +44,7 @@ suite = [
 robot = [
   "robotframework>=7.0",
   "robotframework-doctestlibrary>=0.33",
+  "robotframework-seleniumlibrary>=6.0",
   "robotframework-sshlibrary>=3.8",
 ]
 test = [
