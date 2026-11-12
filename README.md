@@ -17,7 +17,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - uses: moonforgelinux/lab-moonforge-action@v0.1.0
+      - uses: moonforgelinux/lab-moonforge-action@v0.2.0
         with:
           workdir: tests
           run: integration
@@ -32,7 +32,7 @@ jobs:
 On a device from the lab, flashing it first:
 
 ```yml
-      - uses: moonforgelinux/lab-moonforge-action@v0.1.0
+      - uses: moonforgelinux/lab-moonforge-action@v0.2.0
         with:
           workdir: tests
           run: integration
@@ -107,7 +107,7 @@ A suite logs in with an empty root password. A Moonforge image built with `kas/c
 The `robot` runner needs a second image, and a second action to pick it:
 
 ```yml
-      - uses: moonforgelinux/lab-moonforge-action/robot@v0.1.0
+      - uses: moonforgelinux/lab-moonforge-action/robot@v0.2.0
         with:
           runner: robot
           workdir: suites

@@ -56,4 +56,4 @@ runs:
   using: docker
   # The tag release.yml pushes. Bumping the version means bumping this
   # and robot/action.yml with it; a test checks both.
-  image: 'docker://ghcr.io/moonforgelinux/lab-moonforge-action:0.1.0'
+  image: 'docker://ghcr.io/moonforgelinux/lab-moonforge-action:0.2.0'
